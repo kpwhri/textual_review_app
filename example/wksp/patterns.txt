@@ -1,0 +1,2 @@
+MURDER==\b(?:poison|kill|murder|toxic|death|died?|dead)\w*\b
+JEALOUS==\b(?:jealous|env[yi])\w*\b

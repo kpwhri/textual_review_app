@@ -1,0 +1,22 @@
+[project]
+name = "textual-review-app"
+version = "0.1.0"
+description = "NLP Review tool using textual"
+requires-python = ">=3.9"
+dependencies = [
+    "loguru>=0.7.3",
+    "textual>=3.2.0",
+    "tomlkit>=0.13.2",
+    "jsonl-index>=0.1.2",
+]
+
+[tool.uv.sources]
+jsonl-index = { git = "https://github.com/kpwhri/jsonl_index" }
+
+[dependency-groups]
+dev = [
+    "textual-dev>=1.7.0",
+]
+
+[project.scripts]
+textual-review-app = "textual_review_app.app:main"

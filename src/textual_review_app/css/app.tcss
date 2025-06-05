@@ -1,0 +1,149 @@
+Screen {
+
+}
+
+#top {
+    height: 3;
+    dock: top;
+    background: $accent;
+}
+
+#bottom {
+    dock: bottom;
+    height: 8;
+    background: $boost;
+}
+
+#buttonbar {
+    height: 3;
+}
+
+#scroll {
+    height: 1fr;
+}
+
+#comment {
+    height: 1fr;
+}
+
+Button {
+    min-width: 10;
+    width: 1fr;
+    height: 3;
+    margin: 0 1;
+    border: none;
+    content-align: center middle;
+}
+
+Label {
+    width: 1fr;
+    content-align: center middle;
+}
+
+Label.left {
+    content-align: left middle;
+}
+
+.responsebtn {
+    border: wide gray;
+}
+
+.responsebtn-checked {
+    border: wide green;
+    background: $background;
+    color: green;
+}
+
+.responsebtn-checked:hover {
+    border: wide #22ce83;
+    background: $background;
+    color: #22ce83;
+}
+
+.vertical-layout {
+    layout: vertical;
+    background: darkmagenta;
+    height: auto;
+}
+
+.horizontal-layout {
+    layout: horizontal;
+    background: darkcyan;
+    height: auto;
+    color: black;
+    text-style: bold;
+    align: center middle;
+}
+
+.left-dock {
+    dock: left;
+    width: 20;
+}
+
+.float-top {
+    dock: top;
+}
+
+.float-bottom {
+    dock: bottom;
+}
+
+.textbtn {
+    height: 3;
+    width: 1fr;
+}
+
+.pad-bottom {
+    padding-bottom: 1;
+}
+
+.purple-btn {
+    background: purple;
+    color: white;
+    border: wide purple;
+}
+
+.purple-btn:hover {
+    background: #a020f0;
+    border: wide #a020f0;
+}
+
+.orange-btn {
+    background: orange;
+    color: black;
+    border: wide orange;
+}
+
+.orange-btn:hover {
+    background: #aa6c39;
+    color: white;
+    border: wide #aa6c39;
+}
+
+.yellow-btn {
+    background: yellow;
+    color: black;
+    border: wide yellow;
+}
+
+.yellow-btn:hover {
+    background: #aa6c39;
+    color: white;
+    border: wide #aa6c39;
+}
+
+#metadata-btn {
+    width: 15;
+    height: 1;
+    content-align: center middle;
+    border: none;
+    padding: 0;
+}
+
+#instructions-btn {
+    width: 15;
+    height: 1;
+    content-align: center middle;
+    border: none;
+    padding: 0;
+}

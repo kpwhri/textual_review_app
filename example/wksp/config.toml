@@ -1,0 +1,12 @@
+title = "Count of Monte Cristo"
+offset = 2
+corpus = "corpus.pattern.jsonl"
+highlights = [{regex = "test",color = "yellow"}, {regex = "died",color = "blue"}, {regex = "misfortune",color = "orange"}]
+instructions = [
+    "Review and select the relevant options."
+]
+options = [
+    'Relevant',
+    'Uncertain',
+    'Not Relevant'
+]
