@@ -13,10 +13,17 @@
 <p style="text-align: center">
     <a href="#features">Features</a>
     <a href="#usage">Usage</a>
+    <a href="#reviewer-instructions">Review Instructions</a>
+    <a href="#corpus">Corpus</a>
+    <a href="#config-file">Configurations</a>
     <a href="#license">License</a>
 </p>
 
 ## Features
+
+* Crossplatform
+* Web or terminal
+* Review text
 
 ## Usage
 
