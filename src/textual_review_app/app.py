@@ -8,12 +8,11 @@ from textual.containers import Container, Horizontal, Vertical
 from textual.reactive import reactive
 from textual.widgets import Header, Footer, Label, Button
 
-from textual_review_app.annotation_store import AnnotationStore, Annotation
+from textual_review_app.annotation_store import AnnotationStore
 from textual_review_app.config import Config
 from textual_review_app.corpus import Corpus
 from textual_review_app.widgets.add_keyword_modal import AddKeywordModal
 from textual_review_app.widgets.info_modal import InfoModal
-from textual_review_app.widgets.instruction_widget import InstructionWidget
 from textual_review_app.widgets.metadata_modal import MetadataModal
 from textual_review_app.widgets.snippet_widget import SnippetWidget
 from textual_review_app.widgets.toggle_button import ToggleButton
@@ -37,6 +36,7 @@ class ReviewApp(App):
         self.current_meta2 = None
         self.current_meta3 = None
         self.current_annot = None
+        self.header = None
         self.response_buttons = [
             ToggleButton(f'{option}', id=f'button-{i}', classes='responsebtn')
             for i, option in enumerate(self.config.options)
@@ -45,7 +45,7 @@ class ReviewApp(App):
         self.current_display_metadata = list()
 
     def compose(self) -> ComposeResult:
-        yield Header(name=self.config.title)
+        self.header = Header(name=self.config.title)
 
         # header info
         self.current_meta1 = Label('', id='current-md1')
@@ -87,6 +87,7 @@ class ReviewApp(App):
         self.curr_idx = self.config.offset
         percent_done = self.curr_idx / len(self.corpus) * 100
         self.progress_label.update(f'Completed {self.curr_idx} / {len(self.corpus)} ({percent_done:.2f}%)')
+        self.header.title = self.config.title
 
     def watch_curr_idx(self, idx: int):
         if idx < 0:

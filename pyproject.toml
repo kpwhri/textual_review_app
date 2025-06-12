@@ -8,6 +8,7 @@ dependencies = [
     "textual>=3.2.0",
     "tomlkit>=0.13.2",
     "jsonl-index>=0.1.2",
+    "textual-serve>=1.1.2",
 ]
 
 [tool.uv.sources]
@@ -17,9 +18,8 @@ jsonl-index = { git = "https://github.com/kpwhri/jsonl_index" }
 dev = [
     "textual-dev>=1.7.0",
 ]
-serve = [
-    "textual-serve>=1.1.2",
-]
 
 [project.scripts]
 textual-review-app = "textual_review_app.app:main"
+textual-review-web = "serve:main"
+textual-review-search = "search:main"
