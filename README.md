@@ -105,6 +105,26 @@ Textual-serve doesn't currently have a way to add authentication. One approach f
 ***SERVER_NAME***: computer name, and may require `http` prefix (e.g., `http://pc123.example.com:8080`)
 
 
+## Reviewer Instructions
+
+From the instructions screen, press "Save & Next" to start review.
+
+Review the red highlighted and underlined text and choose the best response option. Multiple responses can be selected.
+
+To help with the review, you can add additional regular expressions to highlight in th text. Click `Add Highlight`, pick a color, and then type a regex.
+
+View more context for the match by selecting `Show Before` or `Show After`.
+
+Add Comments in the left hand text box.
+
+* `Previous`: save and go back to previous record
+* `Add Highlight`: add regular expressions to highlight in the text
+* `Save`: save current record
+* `Save & Next`: save current record and open next
+* Press `Ctrl+Q` to quit
+
+
+
 ## Corpus
 
 The corpus required as input includes matches with context windows. The best approach to getting this format is to create a jsonlines corpus, create some regular expression patterns to review, and run `textual-review-search`. Examples for all of these steps is in [`/example/wksp`](/example/wksp)
