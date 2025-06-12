@@ -67,5 +67,14 @@ class AnnotationStore:
             return Annotation(rowid, row['annotation'])
         return Annotation(rowid)
 
+    def export(self):
+        with open(self.dbpath.parent / f'export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.db.jsonl',
+                  'w', encoding='utf8') as out:
+            for rowid, annotation in self.conn.execute('SELECT rowid, annotation FROM annotations'):
+                d = json.loads(annotation)
+                d['row'] = rowid
+                out.write(json.dumps(d) + '\n')
+
+
     def close(self):
         self.conn.close()

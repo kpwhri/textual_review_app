@@ -185,6 +185,8 @@ def main():
     if config_path.exists():
         app = ReviewApp(config_path)
         app.run()
+        # on exit, export database
+        app.annotations.export()
     else:
         logger.error(f'Configuration file does not exist! {config_path}')
         logger.warning(f'Creating default configuration at {config_path}')
