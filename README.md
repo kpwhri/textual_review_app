@@ -120,6 +120,7 @@ Add Comments in the left hand text box.
 * `Previous`: save and go back to previous record
 * `Add Highlight`: add regular expressions to highlight in the text
 * `Save`: save current record
+* `Save & Exit`: save current record and quit
 * `Save & Next`: save current record and open next
 * Press `Ctrl+Q` to quit
 
@@ -154,6 +155,12 @@ options = [
     'Not Relevant'
 ]
 ```
+
+* `INSTRUCTIONS`: There are several default instruction lines explaining the buttons
+* `HIGHLIGHTS`: highlight additional text with a selected color using regular expressions
+  * Use the `Add Highlight` button in the app to create
+* `OPTIONS`: these are the response options to collect relevant information from the reviewer
+  * These are always multi-select
 
 ## License
 

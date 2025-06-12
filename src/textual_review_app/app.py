@@ -73,6 +73,7 @@ class ReviewApp(App):
         # button bars
         with Vertical(id='bottom'):
             with Horizontal(classes='buttonbar'):
+                yield Button('Save & Exit', variant='default', id='exit')
                 yield Button('Previous', variant='warning', id='previous')
                 yield Button('Add Highlight', variant='error', id='highlight-keyword')
                 yield Button('Save', variant='success', id='save')
@@ -150,6 +151,12 @@ class ReviewApp(App):
     async def save_record(self):
         if not self.show_instructions:
             self.save()
+
+    @on(Button.Pressed, '#exit')
+    async def save_and_exit_record(self):
+        if not self.show_instructions:
+            self.save()
+        self.exit()
 
     @on(Button.Pressed, '#previous')
     async def previous_record(self):
