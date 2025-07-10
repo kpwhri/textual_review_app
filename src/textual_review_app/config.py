@@ -17,6 +17,10 @@ class Config:
             'highlights': [],
             'instructions': [],
             'options': [],
+            'mark_colors': {
+                'mark': 'blue',
+                'negated': 'orange',
+            },
         }
         self.load()
 
@@ -36,6 +40,10 @@ class Config:
         self.save()
 
     @property
+    def mark_colors(self):
+        return self.data['mark_colors']
+
+    @property
     def options(self):
         return self.data['options']
 
@@ -43,7 +51,8 @@ class Config:
     def instructions(self):
         return [
             Label('Press [skyblue]"Save & Next"[/skyblue] to start review.'),
-            Label('Review the [red][highlight][underline]red highlighted and underlined text[/red][/highlight][/underline] and choose the best response option.'),
+            Label(
+                'Review the [red][highlight][underline]red highlighted and underlined text[/red][/highlight][/underline] and choose the best response option.'),
             Label('* [orange][bold]Previous[/bold][/orange]: save and go back to previous record *'),
             Label('* [red][bold]Add Highlight[/bold][/red]: add regular expressions to highlight in the text *'),
             Label('* [green][bold]Save[/bold][/green]: save current record *'),
@@ -54,7 +63,7 @@ class Config:
 
     @property
     def corpus_path(self):
-        return self.path.parent /  self.data['corpus']
+        return self.path.parent / self.data['corpus']
 
     @property
     def title(self):

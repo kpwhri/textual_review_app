@@ -14,15 +14,25 @@ class Annotation:
         self.rowid = rowid
         self.selected = data.get('selected', list())
         self.comment = data.get('comment', '')
+        self.marks = data.get('marks', list())
 
     def to_json(self):
         return {
             'selected': self.selected,
             'comment': self.comment,
+            'marks': self.marks,
         }
 
     def to_json_str(self):
         return json.dumps(self.to_json())
+
+    def add_mark(self, start, end, selection, kind):
+        self.marks.append({
+            'start': start,
+            'end': end,
+            'kind': kind,
+            'selection': selection,
+        })
 
 
 class AnnotationStore:

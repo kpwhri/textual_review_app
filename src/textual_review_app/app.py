@@ -119,7 +119,7 @@ class ReviewApp(App):
     async def update_display(self):
         if self.curr_idx < 0:
             self.curr_idx = 0
-        await self.snippet_widget.update_entry(self.current_entry, self.current_annot.comment)
+        await self.snippet_widget.update_entry(self.current_entry, self.current_annot.comment, self.current_annot.marks)
         # update selection
         for response in self.response_buttons:
             response.set_selected(response.label in self.current_annot.selected)

@@ -13,11 +13,12 @@ class AddKeywordModal(ModalScreen):
     def compose(self):
         yield Label('Add Keyword')
         yield Input(placeholder='Enter regex...', id='keyword-regex')
-        yield Label('Color')
+        yield Label('Select Keyword Color')
         yield Select(
             options=[(color, color) for color in COLOR_NAMES],
             prompt='Keyword Color',
             id='keyword-color',
+            tooltip='Select Keyword Color',
         )
         with Horizontal():
             yield Button('Add Keyword', id='keyword-add', variant='success')

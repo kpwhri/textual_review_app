@@ -2,6 +2,11 @@ Screen {
 
 }
 
+TextArea {
+    background: black;
+    color: white;
+}
+
 #top {
     height: 3;
     dock: top;
