@@ -52,8 +52,7 @@ class SnippetWidget(Widget):
             self.show_full_text_pre = False
             self.show_full_text_post = False
             self.entry = entry
-        print('Marks')
-        print(marks)
+
         if marks is not None:
             self.marks = marks
         await self.scroll.query_one('#textfield').remove()
