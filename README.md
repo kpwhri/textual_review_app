@@ -61,6 +61,7 @@ Run the application:
 
 Run the application:
 * `textual-review-web /path/to/config.toml --port 8080`
+* `src/serve.py  /path/to/config.toml --port 8080`
 
 Open a browser, and navigate to `127.0.0.1:8080` and begin your review.
 
@@ -107,6 +108,7 @@ Textual-serve doesn't currently have a way to add authentication. One approach f
 ```
 * Launch `textual_review_app`
   * `python /path/to/config.toml --port 8081 --public-url SERVER_NAME`
+  * `SERVER_NAME` should be the URL that the user is accessing (see below)
 * Launch caddy: `C:\caddy\caddy.exe run`
 
 ***SERVER_NAME***: computer name, and may require `http` prefix (e.g., `http://pc123.example.com:8080`)
@@ -118,18 +120,27 @@ From the instructions screen, press "Save & Next" to start review.
 
 Review the red highlighted and underlined text and choose the best response option. Multiple responses can be selected.
 
-To help with the review, you can add additional regular expressions to highlight in th text. Click `Add Highlight`, pick a color, and then type a regex.
+**Highlight Keywords and Phrases**
+To help with the review, you can add additional regular expressions to highlight in th text. Click `Add Highlight`, pick a color, and then type a regular expression.
 
+To get a preview and test what you want to match, highlight the target text span prior to clicking `Add Highlight` and use the `Test Regex` button to ensure that your regex works.
+
+**View More Text**
 View more context for the match by selecting `Show Before` or `Show After`.
 
+**Add Note-level Comments**
 Add Comments in the left hand text box.
 
+**Annotate Text Spans**
+To annotate the text, you can highlight a word, press `Enter`, select a pre-loaded annotation type, and select `Add Annotation`.
+
+**Buttons**
 * `Previous`: save and go back to previous record
 * `Add Highlight`: add regular expressions to highlight in the text
 * `Save`: save current record
 * `Save & Exit`: save current record and quit
 * `Save & Next`: save current record and open next
-* Press `Ctrl+Q` to quit
+* Press `Ctrl+Q` (or `Save & Exit`) to quit
 
 
 

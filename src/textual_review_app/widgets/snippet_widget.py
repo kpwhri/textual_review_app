@@ -74,6 +74,9 @@ class SnippetWidget(Widget):
     def get_comment(self):
         return self.comment_area.text
 
+    def get_selected_text(self):
+        return self.scroll.query_one('#textfield').selection
+
     @on(Button.Pressed, '#pretext-button')
     async def reveal_pretext(self):
         if self.show_full_text_pre:

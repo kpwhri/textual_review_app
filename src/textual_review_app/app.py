@@ -30,7 +30,7 @@ class ReviewApp(App):
         self.corpus = Corpus(self.config.corpus_path)
         self.wksp_path = config_path.parent
         self.annotations = AnnotationStore(self.config.corpus_path.parent / 'annotations.db')
-        self.snippet_widget = None
+        self.snippet_widget: SnippetWidget = None
         self.progress_label = None
         self.current_meta1 = None
         self.current_meta2 = None
@@ -136,7 +136,7 @@ class ReviewApp(App):
 
     @on(Button.Pressed, '#highlight-keyword')
     def open_add_keyword_dialog(self):
-        self.push_screen(AddKeywordModal())
+        self.push_screen(AddKeywordModal(self.snippet_widget.get_selected_text()))
 
     @on(Button.Pressed, '#next')
     async def get_next_record(self):
@@ -173,7 +173,6 @@ class ReviewApp(App):
             await self.push_screen(InfoModal(self.config.instructions, title='Instructions Page'))
         else:
             await self.push_screen(MetadataModal(self.current_entry))
-
 
     @on(Button.Pressed, '#instructions-btn')
     async def show_instructions(self):
