@@ -31,7 +31,7 @@ class ReviewApp(App):
         self.wksp_path = config_path.parent
         self.annotations = AnnotationStore(self.config.corpus_path.parent / 'annotations.db')
         self.snippet_widget: SnippetWidget = None
-        self.progress_label = None
+        self.progress_label: Label = None
         self.current_meta1 = None
         self.current_meta2 = None
         self.current_meta3 = None
@@ -90,16 +90,16 @@ class ReviewApp(App):
         self.progress_label.update(f'Completed {self.curr_idx} / {len(self.corpus)} ({percent_done:.2f}%)')
         self.header.title = self.config.title
 
-    def watch_curr_idx(self, idx: int):
+    async def watch_curr_idx(self, idx: int):
         if idx < 0:
             self.curr_idx = 0
-            self.push_screen(InfoModal([
+            await self.push_screen(InfoModal([
                 'You have reached the first record.',
                 'Unable to go back any further.',
             ], title='No Previous Records'))
         elif idx >= len(self.corpus):
             self.curr_idx = len(self.corpus) - 1
-            self.push_screen(InfoModal([
+            await self.push_screen(InfoModal([
                 f'Congratulations! You have finished all {len(self.corpus)} records.'
                 'You have finished the last record.',
                 'Review has been completed, though you can go back.',
@@ -134,6 +134,7 @@ class ReviewApp(App):
         percent_done = self.curr_idx / len(self.corpus) * 100
         self.progress_label.update(f'Record #{self.curr_idx + 1} / {len(self.corpus)} ({percent_done:.2f}%)')
 
+
     @on(Button.Pressed, '#highlight-keyword')
     def open_add_keyword_dialog(self):
         self.push_screen(AddKeywordModal(self.snippet_widget.get_selected_text()))
@@ -145,6 +146,13 @@ class ReviewApp(App):
         else:
             self.save()
             self.curr_idx += 1
+            if self.curr_idx >= len(self.corpus):
+                self.curr_idx = len(self.corpus) - 1
+                await self.push_screen(InfoModal([
+                    f'Congratulations! You have finished all {len(self.corpus)} records.'
+                    'You have finished the last record.',
+                    'Review has been completed, though you can go back.',
+                ], title='Finished Review'))
         await self.update_display()
 
     @on(Button.Pressed, '#save')
@@ -165,6 +173,12 @@ class ReviewApp(App):
         else:
             self.save()
             self.curr_idx -= 1
+            if self.curr_idx < 0:
+                self.curr_idx = 0
+                await self.push_screen(InfoModal([
+                    'You have reached the first record.',
+                    'Unable to go back any further.',
+                ], title='No Previous Records'))
         await self.update_display()
 
     @on(Button.Pressed, '#metadata-btn')
