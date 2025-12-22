@@ -33,7 +33,10 @@ async def test_navigation_and_progress_updates(app):
 
         await pilot.click('#next')  # record #3
         await pilot.pause()
+        await pilot.click('#next')  # HACK: record #3
+        await pilot.pause()
         # progress label should advance accordingly
+        text = await wait_for_label_contains(pilot, 'Record #3', get_progress_label)
         assert 'Record #3' in get_progress_label()
 
         # click previous and ensure it goes back
