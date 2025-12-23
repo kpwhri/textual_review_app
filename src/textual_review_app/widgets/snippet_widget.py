@@ -111,7 +111,22 @@ class SnippetWidget(Widget):
                 self.app.set_focus(None)
             except Exception:
                 pass
-        elif event.key == 'enter':  # enter
+            return
+        # handle common app shortcuts while focused in snippet view
+        if event.key == 'ctrl+s':
+            await self.app.action_save()
+            event.stop()
+            return
+        if event.key == 'ctrl+f':
+            await self.app.action_search()
+            event.stop()
+            return
+        if event.key == 'ctrl+r':
+            await self.app.action_toggle_flag()
+            event.stop()
+            return
+
+        if event.key == 'enter':  # enter
             widget = self.scroll.query_one('#textfield')
             await self.app.push_screen(
                 MarkModal(widget.selection_start, widget.selection_end, widget.selection),

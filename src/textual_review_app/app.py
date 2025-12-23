@@ -94,6 +94,8 @@ class ReviewApp(App):
                 yield Button('Save & Exit', variant='default', id='exit')
                 yield Button('Previous', variant='warning', id='previous')
                 yield Button('Add Highlight', variant='error', id='highlight-keyword')
+                # toggle review flag button (green when unflagged, red when flagged)
+                yield Button('Flag', variant='success', id='flag-toggle')
                 yield Button('Save', variant='success', id='save')
                 yield Button('Save & Next', variant='primary', id='next')
             with Horizontal(classes='buttonbar'):
@@ -195,6 +197,11 @@ class ReviewApp(App):
         self.current_meta3.update(display_metadata[2])
         percent_done = self.curr_idx / len(self.corpus) * 100
         self.progress_label.update(f'Record #{self.curr_idx + 1} / {len(self.corpus)} ({percent_done:.2f}%)')
+        # sync review flag button state
+        try:
+            self._update_flag_button()
+        except Exception:
+            pass
 
     @on(Button.Pressed, '#highlight-keyword')
     def open_add_keyword_dialog(self):
@@ -311,7 +318,7 @@ class ReviewApp(App):
 
     async def action_search(self):
         async def _apply_search(pattern: str):
-            if not self.show_instructions:
+            if pattern and not self.show_instructions:
                 self.snippet_widget.set_temp_highlights([{'regex': pattern, 'color': 'yellow'}])
                 await self.update_display()
 
@@ -325,6 +332,24 @@ class ReviewApp(App):
                 self.notify(f'{msg} record', severity='warning' if self.current_annot.flagged else 'information')
             except Exception:
                 pass
+            # update button state immediately
+            try:
+                self._update_flag_button()
+            except Exception:
+                pass
+
+    def _update_flag_button(self):
+        btn = self.query_one('#flag-toggle', Button)
+        if getattr(self.current_annot, 'flagged', False):
+            btn.variant = 'error'  # red
+            btn.label = 'Flagged'
+        else:
+            btn.variant = 'success'  # green
+            btn.label = 'Flag'
+
+    @on(Button.Pressed, '#flag-toggle')
+    async def on_flag_toggle_pressed(self):
+        await self.action_toggle_flag()
 
 
 def main():
