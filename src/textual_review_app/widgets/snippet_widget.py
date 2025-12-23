@@ -1,10 +1,9 @@
 from rich.text import Text
 from textual import on
-from textual import log
 from textual.containers import Vertical, VerticalScroll, Horizontal, Container
-from textual.events import MouseDown, Key
+from textual.events import Key
 from textual.widget import Widget
-from textual.widgets import Button, Static, TextArea, Label, Select
+from textual.widgets import Button, Static, TextArea, Label
 
 from textual_review_app.config import Config
 from textual_review_app.widgets.highlighter_widget import HighlighterWidget
@@ -28,9 +27,7 @@ class SnippetWidget(Widget):
         self.scroll = None
         self.comment = ''
         self.comment_area = TextArea(id='comment')
-        self.instructions = [
-            line if isinstance(line, Label) else Label(str(line)) for line in self.config.instructions
-        ]
+        self.instructions = []
         self.marks = []
         self._temp_patterns = []
 

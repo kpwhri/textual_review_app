@@ -13,7 +13,7 @@ pytestmark = pytest.mark.asyncio
 async def test_last_saved_label_updates_on_save(app):
     async with app.run_test() as pilot:
         # go to first record
-        await pilot.click('#next')
+        await pilot.click('#ok')
         # trigger save via shortcut (works even when focused elsewhere)
         await pilot.press('ctrl+s')
         # label should contain timestamp prefix
@@ -23,7 +23,7 @@ async def test_last_saved_label_updates_on_save(app):
 
 async def test_flag_toggle_button_toggles_and_colors(app):
     async with app.run_test() as pilot:
-        await pilot.click('#next')
+        await pilot.click('#ok')
         # initial state should be unflagged (green)
         btn = app.query_one('#flag-toggle', Button)
         assert str(btn.label) == 'Flag'
@@ -50,7 +50,7 @@ async def test_flag_toggle_button_toggles_and_colors(app):
 
 async def test_ctrl_r_in_snippet_view_flags_record(app):
     async with app.run_test() as pilot:
-        await pilot.click('#next')
+        await pilot.click('#ok')
         # focus into the snippet text area area
         await pilot.click('#textfield')
         # toggle flag via Ctrl+R inside snippet view

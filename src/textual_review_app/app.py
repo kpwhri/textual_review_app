@@ -51,7 +51,6 @@ class ReviewApp(App):
             ToggleButton(f'{option}', id=f'button-{i}', classes='responsebtn')
             for i, option in enumerate(self.config.options)
         ]
-        self.show_instructions = True
         self.current_display_metadata = list()
 
     def compose(self) -> ComposeResult:
@@ -115,7 +114,6 @@ class ReviewApp(App):
         except Exception:
             pass
         # getting started overlay will be shown from Instructions button on first use to avoid blocking flows
-        # recovery
         recovery_file = self.wksp_path / '.recovery.json'
         if recovery_file.exists():
             import json
@@ -137,6 +135,12 @@ class ReviewApp(App):
                     recovery_file.unlink(missing_ok=True)
                 except Exception:
                     pass
+
+    async def on_ready(self):
+        """Called when the app is fully loaded and ready."""
+        # showing a modal once the app has finished loading
+        await self.update_display()
+        await self.show_instructions()
 
     async def watch_curr_idx(self, idx: int):
         if idx < 0:
@@ -166,19 +170,7 @@ class ReviewApp(App):
         # update last saved timestamp and toast
         from datetime import datetime
         self.last_saved_label.update(f'Last saved: {datetime.now().strftime("%H:%M:%S")}')
-        try:
-            self.notify('Saved', severity='information', timeout=2)
-        except Exception:
-            pass
-        # write recovery snapshot
-        try:
-            import json as _json
-            (self.wksp_path / '.recovery.json').write_text(_json.dumps({
-                'idx': self.curr_idx,
-                'annotation': self.current_annot.to_json(),
-            }), encoding='utf8')
-        except Exception:
-            pass
+        self.notify('Saved', severity='information', timeout=2)
 
     async def update_display(self):
         if self.curr_idx < 0:
@@ -209,64 +201,66 @@ class ReviewApp(App):
 
     @on(Button.Pressed, '#next')
     async def get_next_record(self):
-        if self.show_instructions:
-            self.show_instructions = False
-        else:
-            self.save()
-            self.curr_idx += 1
-            if self.curr_idx >= len(self.corpus):
-                self.curr_idx = len(self.corpus) - 1
-                await self.push_screen(InfoModal([
-                    f'Congratulations! You have finished all {len(self.corpus)} records.'
-                    'You have finished the last record.',
-                    'Review has been completed, though you can go back.',
-                ], title='Finished Review'))
+        self.save()
+        self.curr_idx += 1
+        if self.curr_idx >= len(self.corpus):
+            self.curr_idx = len(self.corpus) - 1
+            await self.push_screen(InfoModal([
+                f'Congratulations! You have finished all {len(self.corpus)} records.'
+                'You have finished the last record.',
+                'Review has been completed, though you can go back.',
+            ], title='Finished Review'))
         await self.update_display()
 
     @on(Button.Pressed, '#save')
     async def save_record(self):
-        if not self.show_instructions:
-            self.save()
+        self.save()
 
     @on(Button.Pressed, '#exit')
     async def save_and_exit_record(self):
-        if not self.show_instructions:
-            self.save()
+        self.save()
         self.exit()
 
     @on(Button.Pressed, '#previous')
     async def previous_record(self):
-        if self.show_instructions:
-            self.show_instructions = False
-        else:
-            self.save()
-            self.curr_idx -= 1
-            if self.curr_idx < 0:
-                self.curr_idx = 0
-                await self.push_screen(InfoModal([
-                    'You have reached the first record.',
-                    'Unable to go back any further.',
-                ], title='No Previous Records'))
+        self.save()
+        self.curr_idx -= 1
+        if self.curr_idx < 0:
+            self.curr_idx = 0
+            await self.push_screen(InfoModal([
+                'You have reached the first record.',
+                'Unable to go back any further.',
+            ], title='No Previous Records'))
         await self.update_display()
 
     @on(Button.Pressed, '#metadata-btn')
     async def show_metadata(self):
-        if self.show_instructions:
-            await self.push_screen(InfoModal(self.config.instructions, title='Instructions Page'))
-        else:
-            await self.push_screen(MetadataModal(self.current_entry))
+        await self.push_screen(MetadataModal(self.current_entry))
 
     @on(Button.Pressed, '#instructions-btn')
     async def show_instructions(self):
-        if self.config.first_run:
-            await self.push_screen(InfoModal([
-                                                 'Welcome! This looks like your first time using the app.',
-                                                 'Use Settings to configure font size and your user name.',
-                                                 'Press "Save & Next" to begin reviewing the first record.'
-                                             ] + self.config.instructions, title='Getting Started'))
-            self.config.first_run = False
-        else:
-            await self.push_screen(InfoModal(self.config.instructions, title='Instructions'))
+        await self.push_screen(InfoModal([
+                                             '[b]Welcome to the Textual Review App![/b]',
+                                             '',
+                                             '[b]Instructions:[b]',
+                                             'Review the [red][highlight][underline]red highlighted and underlined text[/red][/highlight][/underline] and choose the best response option.'
+                                             '',
+                                             'Use the buttons at the bottom to annotate the corpus:',
+                                             ' • [b]Save & Next[/b]: Save current work and move to the next record.',
+                                             ' • [b]Save[/b]: Save your progress without moving.',
+                                             ' • [b]Previous[/b]: Go back to the preceding record.',
+                                             ' • [b]Flag[/b]: Mark records for further review.',
+                                             ' • [b]Add Highlight[/b]: Add custom highlights to the text.',
+                                             '',
+                                             '[b]Keyboard Shortcuts:[/b]',
+                                             ' • [yellow]Ctrl+S[/yellow]: Save current record',
+                                             ' • [yellow]Ctrl+→[/yellow]: Save and go to next',
+                                             ' • [yellow]Ctrl+←[/yellow]: Go to previous',
+                                             ' • [yellow]Ctrl+F[/yellow]: Search',
+                                             ' • [yellow]Ctrl+R[/yellow]: Toggle flag',
+                                             '',
+                                             'Here are your project-specific instructions:',
+                                         ] + self.config.instructions, title='Instructions'))
 
     @on(Button.Pressed, '#settings-btn')
     async def open_settings(self):
@@ -295,7 +289,6 @@ class ReviewApp(App):
                 self.notify(result, severity='error')
             elif isinstance(result, int):
                 if self.annotations.exists(result):
-                    self.show_instructions = False
                     self.curr_idx = result
                     await self.update_display()
                 else:
@@ -318,25 +311,24 @@ class ReviewApp(App):
 
     async def action_search(self):
         async def _apply_search(pattern: str):
-            if pattern and not self.show_instructions:
+            if pattern:
                 self.snippet_widget.set_temp_highlights([{'regex': pattern, 'color': 'yellow'}])
                 await self.update_display()
 
         await self.push_screen(SearchModal(), _apply_search)
 
     async def action_toggle_flag(self):
-        if not self.show_instructions:
-            self.current_annot.flagged = not getattr(self.current_annot, 'flagged', False)
-            try:
-                msg = 'Flagged' if self.current_annot.flagged else 'Unflagged'
-                self.notify(f'{msg} record', severity='warning' if self.current_annot.flagged else 'information')
-            except Exception:
-                pass
-            # update button state immediately
-            try:
-                self._update_flag_button()
-            except Exception:
-                pass
+        self.current_annot.flagged = not getattr(self.current_annot, 'flagged', False)
+        try:
+            msg = 'Flagged' if self.current_annot.flagged else 'Unflagged'
+            self.notify(f'{msg} record', severity='warning' if self.current_annot.flagged else 'information')
+        except Exception:
+            pass
+        # update button state immediately
+        try:
+            self._update_flag_button()
+        except Exception:
+            pass
 
     def _update_flag_button(self):
         btn = self.query_one('#flag-toggle', Button)

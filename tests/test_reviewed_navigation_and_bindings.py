@@ -10,7 +10,7 @@ pytestmark = pytest.mark.asyncio
 async def test_goto_reviewed_lists_and_navigates(app):
     async with app.run_test() as pilot:
         # move to first record and save to mark as reviewed
-        await pilot.click('#next')
+        await pilot.click('#ok')
         await pilot.click('#save')
 
         # open the reviewed nav and click the first reviewed button (#1)
@@ -26,6 +26,7 @@ async def test_goto_reviewed_lists_and_navigates(app):
 
 async def test_escape_closes_info_modal(app):
     async with app.run_test() as pilot:
+        await pilot.click('#ok')
         # open instructions/info modal directly
         await pilot.click('#instructions-btn')
         # press escape to close
@@ -39,7 +40,7 @@ async def test_escape_closes_info_modal(app):
 async def test_keybindings_save_and_navigation(app):
     async with app.run_test() as pilot:
         # go to first record
-        await pilot.click('#next')
+        await pilot.click('#ok')
         # toggle a response to create a selection
         btn = app.response_buttons[0]
         await pilot.click(f'#{btn.id}')
@@ -70,7 +71,7 @@ async def test_keybindings_save_and_navigation(app):
 async def test_escape_unfocus_enables_keybindings(app):
     async with app.run_test() as pilot:
         # navigate to first record to ensure textarea present
-        await pilot.click('#next')
+        await pilot.click('#ok')
         # focus into the comment TextArea by clicking it
         await pilot.click('#comment')
         # Try to trigger save while focused; first press escape to unfocus, then Ctrl+S should work

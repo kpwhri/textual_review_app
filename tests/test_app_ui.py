@@ -31,15 +31,13 @@ async def test_ui_elements_present(app):
 
 async def test_instructions_modal_and_metadata_modal(app):
     async with app.run_test() as pilot:
+        await pilot.click('#ok')
         # instructions button should open an InfoModal
         await pilot.click('#instructions-btn')
-        screen = app.screen
         # modal screen is pushed, find the OK button and close
-        ok = screen.query_one('#ok')
         await pilot.click('#ok')
 
         # move to first record, then metadata shows MetadataModal (not instructions)
-        await pilot.click('#next')
         await pilot.click('#metadata-btn')
         # metadata modal also has an OK, close it
         await pilot.click('#ok')

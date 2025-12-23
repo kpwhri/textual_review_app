@@ -12,7 +12,7 @@ pytestmark = pytest.mark.asyncio
 async def test_flagging_persists_and_in_export(app, tmp_path):
     async with app.run_test() as pilot:
         # go to first record
-        await pilot.click('#next')
+        await pilot.click('#ok')
         # toggle flag with Ctrl+R
         await pilot.press('ctrl+r')
         # save so it is persisted
@@ -54,7 +54,7 @@ async def test_toasts_on_save(app):
         # monkeypatch notify on app instance
         app.notify = fake_notify  # type: ignore
         # navigate and trigger a save
-        await pilot.click('#next')
+        await pilot.click('#ok')
         await pilot.press('ctrl+s')
         # ensure our fake was called with a Saved message
         assert any('Saved' in msg for (msg, _, __) in called)
@@ -62,6 +62,7 @@ async def test_toasts_on_save(app):
 
 async def test_settings_persist_in_config_file(app):
     async with app.run_test() as pilot:
+        await pilot.click('#ok')
         # open settings
         await pilot.click('#settings-btn')
         # programmatically set values in modal inputs for reliability

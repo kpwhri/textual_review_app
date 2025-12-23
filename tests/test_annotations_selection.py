@@ -33,8 +33,8 @@ def _latest_export_jsonl(wksp_dir: Path) -> Path:
 async def test_no_selection_saved_and_exported(app):
     async with app.run_test() as pilot:
         # go to first record but select nothing
-        await pilot.click('#next')
-        # save
+        await pilot.click('#ok')
+        # save without any selection
         await pilot.click('#save')
 
         db_path = app.config.corpus_path.parent / 'annotations.db'
@@ -52,7 +52,7 @@ async def test_no_selection_saved_and_exported(app):
 
 async def test_single_selection_saved_and_exported(app):
     async with app.run_test() as pilot:
-        await pilot.click('#next')
+        await pilot.click('#ok')
         # click first response
         btn = app.response_buttons[0]
         await pilot.click(f'#{btn.id}')
@@ -71,7 +71,7 @@ async def test_single_selection_saved_and_exported(app):
 
 async def test_all_three_selection_saved_and_exported(app):
     async with app.run_test() as pilot:
-        await pilot.click('#next')
+        await pilot.click('#ok')
         # click all response buttons
         labels = []
         for btn in app.response_buttons[:3]:

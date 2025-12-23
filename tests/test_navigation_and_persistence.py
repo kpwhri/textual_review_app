@@ -47,9 +47,8 @@ pytestmark = pytest.mark.asyncio
 
 async def test_bounds_show_info_modal(app):
     async with app.run_test() as pilot:
-        await pilot.pause()
         # move to first record from instructions
-        await pilot.click('#next')  # first click exits instructions
+        await pilot.click('#ok')  # first click exits instructions
         assert 'Record #1' in str(app.query_one('#progress-label').renderable)  # ensure at first record
         # now at first record; clicking previous again should show info modal
         await pilot.click('#previous')
@@ -68,7 +67,7 @@ async def test_bounds_show_info_modal(app):
 async def test_save_persists_to_annotations_db(app):
     async with app.run_test() as pilot:
         # Move to first record
-        await pilot.click('#next')
+        await pilot.click('#ok')
         # Toggle the first response button to create a selection
         btn = app.response_buttons[0]
         await pilot.click(f'#{btn.id}')

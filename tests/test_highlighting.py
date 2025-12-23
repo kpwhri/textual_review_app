@@ -10,7 +10,7 @@ pytestmark = pytest.mark.asyncio
 async def test_add_highlight_persists_and_applies(app):
     async with app.run_test() as pilot:
         # enter first record
-        await pilot.click('#next')
+        await pilot.click('#ok')
 
         # open Add Keyword modal
         await pilot.click('#highlight-keyword')
@@ -41,7 +41,7 @@ async def test_add_highlight_persists_and_applies(app):
 async def test_mark_offsets_are_applied_after_update(app):
     async with app.run_test() as pilot:
         # Move to record and ensure we have an annotation object
-        await pilot.click('#next')
+        await pilot.click('#ok')
         entry = app.current_entry
         # add a mark over the first 3 chars of match
         app.current_annot.add_mark(0, min(3, len(entry['match'])), entry['match'][:3], 'mark')

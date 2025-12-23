@@ -45,6 +45,7 @@ def make_workspace(tmp_path: Path) -> Iterator[Path]:
     doc['highlights'] = []
     doc['instructions'] = ['Review and select the relevant options.']
     doc['options'] = ['Relevant', 'Uncertain', 'Not Relevant']
+    doc['first_run'] = False
     with config_path.open('w', encoding='utf8') as fh:
         tomlkit.dump(doc, fh)
 

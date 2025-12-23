@@ -67,17 +67,7 @@ class Config:
 
     @property
     def instructions(self):
-        return [
-            Label('Press [skyblue]"Save & Next"[/skyblue] to start review.'),
-            Label(
-                'Review the [red][highlight][underline]red highlighted and underlined text[/red][/highlight][/underline] and choose the best response option.'),
-            Label('* [orange][bold]Previous[/bold][/orange]: save and go back to previous record *'),
-            Label('* [red][bold]Add Highlight[/bold][/red]: add regular expressions to highlight in the text *'),
-            Label('* [green][bold]Save[/bold][/green]: save current record *'),
-            Label('* [skyblue][bold]Save & Next[/bold][/skyblue]: save current record and open next *'),
-            Label('* Press [bold]Ctrl+Q[/bold] to quit *'),
-            Label(''),
-        ] + self.data['instructions']
+        return self.data['instructions']
 
     @property
     def corpus_path(self):
