@@ -16,6 +16,8 @@ from textual_review_app.widgets.info_modal import InfoModal
 from textual_review_app.widgets.metadata_modal import MetadataModal
 from textual_review_app.widgets.snippet_widget import SnippetWidget
 from textual_review_app.widgets.toggle_button import ToggleButton
+from textual_review_app.widgets.settings_modal import SettingsModal
+from textual_review_app.widgets.search_modal import SearchModal
 
 
 class ReviewApp(App):
@@ -24,6 +26,8 @@ class ReviewApp(App):
         ('ctrl+s', 'save', 'Save'),
         ('ctrl+right', 'save_next', 'Save & Next'),
         ('ctrl+left', 'previous', 'Previous'),
+        ('ctrl+f', 'search', 'Search'),
+        ('ctrl+r', 'toggle_flag', 'Flag Record'),
     ]
 
     curr_idx = reactive(0)
@@ -34,9 +38,10 @@ class ReviewApp(App):
         self.config = Config(config_path)
         self.corpus = Corpus(self.config.corpus_path)
         self.wksp_path = config_path.parent
-        self.annotations = AnnotationStore(self.config.corpus_path.parent / 'annotations.db')
+        self.annotations = AnnotationStore(self.config.corpus_path.parent / 'annotations.db', user=self.config.user)
         self.snippet_widget: SnippetWidget = None
         self.progress_label: Label = None
+        self.last_saved_label: Label = None
         self.current_meta1 = None
         self.current_meta2 = None
         self.current_meta3 = None
@@ -57,19 +62,26 @@ class ReviewApp(App):
         self.current_meta2 = Label('Instructions', id='current-md2')
         self.current_meta3 = Label('', id='current-md3')
         self.progress_label = Label('', id='progress-label')
-        yield Container(
-            Button('Metadata', id='metadata-btn', classes='orange-btn'),
-            Container(
-                self.current_meta1,
-                self.current_meta2,
-                self.current_meta3,
-                self.progress_label,
-                classes='horizontal-layout',
-            ),
-            Button('Instructions', id='instructions-btn', classes='yellow-btn'),
-            Button('Go To Reviewed', id='goto-reviewed-btn', classes='blue-btn'),
+        self.last_saved_label = Label('', id='last-saved-label')
+        yield Vertical(
+                Container(
+                    Button('Metadata', id='metadata-btn', classes='orange-btn'),
+                    Button('Instructions', id='instructions-btn', classes='yellow-btn'),
+                    Button('Settings', id='settings-btn', classes='yellow-btn'),
+                    Button('Go To Reviewed', id='goto-reviewed-btn', classes='blue-btn'),
+                    id='buttonbar',
+                    classes='horizontal-layout',
+                ),
+                Container(
+                    self.current_meta1,
+                    self.current_meta2,
+                    self.current_meta3,
+                    self.progress_label,
+                    self.last_saved_label,
+                    id='infobar',
+                    classes='horizontal-layout',
+                ),
             id='topbar',
-            classes='horizontal-layout',
         )
 
         # snippet
@@ -95,6 +107,34 @@ class ReviewApp(App):
         percent_done = self.curr_idx / len(self.corpus) * 100
         self.progress_label.update(f'Completed {self.curr_idx} / {len(self.corpus)} ({percent_done:.2f}%)')
         self.header.title = self.config.title
+        # apply font scale
+        try:
+            self.styles.scale = float(self.config.font_scale)
+        except Exception:
+            pass
+        # getting started overlay will be shown from Instructions button on first use to avoid blocking flows
+        # recovery
+        recovery_file = self.wksp_path / '.recovery.json'
+        if recovery_file.exists():
+            import json
+            try:
+                data = json.loads(recovery_file.read_text(encoding='utf8'))
+                idx = int(data.get('idx', 0))
+                self.curr_idx = max(0, min(idx, len(self.corpus) - 1))
+                self.current_entry = self.corpus[self.curr_idx]
+                self.current_annot = AnnotationStore.Annotation if False else None
+                # load comment/selected/marks into current_annot
+                from textual_review_app.annotation_store import Annotation
+                self.current_annot = Annotation(self.curr_idx, json.dumps(data.get('annotation', {})))
+                await self.update_display()
+                await self.push_screen(InfoModal('Recovered unsaved session state.', title='Recovery'))
+            except Exception:
+                pass
+            finally:
+                try:
+                    recovery_file.unlink(missing_ok=True)
+                except Exception:
+                    pass
 
     async def watch_curr_idx(self, idx: int):
         if idx < 0:
@@ -121,6 +161,22 @@ class ReviewApp(App):
             str(btn.label) for btn in self.response_buttons if 'responsebtn-checked' in btn.classes
         ]
         self.annotations.save(self.curr_idx, self.current_annot)
+        # update last saved timestamp and toast
+        from datetime import datetime
+        self.last_saved_label.update(f'Last saved: {datetime.now().strftime("%H:%M:%S")}')
+        try:
+            self.notify('Saved', severity='information', timeout=2)
+        except Exception:
+            pass
+        # write recovery snapshot
+        try:
+            import json as _json
+            (self.wksp_path / '.recovery.json').write_text(_json.dumps({
+                'idx': self.curr_idx,
+                'annotation': self.current_annot.to_json(),
+            }), encoding='utf8')
+        except Exception:
+            pass
 
     async def update_display(self):
         if self.curr_idx < 0:
@@ -139,7 +195,6 @@ class ReviewApp(App):
         self.current_meta3.update(display_metadata[2])
         percent_done = self.curr_idx / len(self.corpus) * 100
         self.progress_label.update(f'Record #{self.curr_idx + 1} / {len(self.corpus)} ({percent_done:.2f}%)')
-
 
     @on(Button.Pressed, '#highlight-keyword')
     def open_add_keyword_dialog(self):
@@ -196,32 +251,54 @@ class ReviewApp(App):
 
     @on(Button.Pressed, '#instructions-btn')
     async def show_instructions(self):
-        await self.push_screen(InfoModal(self.config.instructions, title='Instructions'))
+        if self.config.first_run:
+            await self.push_screen(InfoModal([
+                                                 'Welcome! This looks like your first time using the app.',
+                                                 'Use Settings to configure font size and your user name.',
+                                                 'Press "Save & Next" to begin reviewing the first record.'
+                                             ] + self.config.instructions, title='Getting Started'))
+            self.config.first_run = False
+        else:
+            await self.push_screen(InfoModal(self.config.instructions, title='Instructions'))
+
+    @on(Button.Pressed, '#settings-btn')
+    async def open_settings(self):
+        async def _apply_settings(values: dict):
+            if not values:
+                return  # 'cancel'
+            # values keys: 'font_scale', 'user'
+            try:
+                self.config.font_scale = float(values.get('font_scale', self.config.font_scale))
+                self.styles.scale = self.config.font_scale
+            except Exception:
+                pass
+            user = values.get('user')
+            if user:
+                self.config.user = user
+                self.annotations.user = user
+
+        await self.push_screen(SettingsModal(self.config.font_scale, self.config.user), _apply_settings)
 
     @on(Button.Pressed, '#goto-reviewed-btn')
-    async def open_reviewed_nav(self):
-        from textual_review_app.widgets.reviewed_nav_modal import GoToModal
-        reviewed = self.annotations.reviewed_ids()
-        await self.push_screen(GoToModal(reviewed, total=len(self.corpus)))
+    async def open_goto(self):
+        from textual_review_app.widgets.goto_modal import GoToModal
+        async def _send_to_record_id(result=None):
+            """result: str interpreted as message, int as record_id to navigate to"""
+            if isinstance(result, str):
+                self.notify(result, severity='error')
+            elif isinstance(result, int):
+                if self.annotations.exists(result):
+                    self.show_instructions = False
+                    self.curr_idx = result
+                    await self.update_display()
+                else:
+                    await self.push_screen(InfoModal([
+                        f'Record #{result + 1} has not been reviewed yet.',
+                        'You can only jump to records that were already saved.'
+                    ], title='Unreviewed Record'))
 
-    @on(Button.Pressed, '.goto-reviewed')
-    async def handle_goto_reviewed(self, event: Button.Pressed):
-        btn_id = event.button.id or ''
-        if not btn_id.startswith('goto-'):
-            return
-        try:
-            idx = int(btn_id.split('-', 1)[1])
-        except ValueError:
-            return
-        if self.annotations.exists(idx):
-            self.show_instructions = False
-            self.curr_idx = idx
-            await self.update_display()
-        else:
-            await self.push_screen(InfoModal([
-                f'Record #{idx + 1} has not been reviewed yet.',
-                'You can only jump to records that were already saved.'
-            ], title='Unreviewed Record'))
+        reviewed = self.annotations.recent_reviewed_ids(15)
+        await self.push_screen(GoToModal(reviewed, total=len(self.corpus)), _send_to_record_id)
 
     async def action_save(self):
         await self.save_record()
@@ -232,6 +309,23 @@ class ReviewApp(App):
     async def action_previous(self):
         await self.previous_record()
 
+    async def action_search(self):
+        async def _apply_search(pattern: str):
+            if not self.show_instructions:
+                self.snippet_widget.set_temp_highlights([{'regex': pattern, 'color': 'yellow'}])
+                await self.update_display()
+
+        await self.push_screen(SearchModal(), _apply_search)
+
+    async def action_toggle_flag(self):
+        if not self.show_instructions:
+            self.current_annot.flagged = not getattr(self.current_annot, 'flagged', False)
+            try:
+                msg = 'Flagged' if self.current_annot.flagged else 'Unflagged'
+                self.notify(f'{msg} record', severity='warning' if self.current_annot.flagged else 'information')
+            except Exception:
+                pass
+
 
 def main():
     import argparse
@@ -239,14 +333,36 @@ def main():
     parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
     parser.add_argument('config_path', type=Path,
                         help='Path to config file (its directory will be the workspace directory).')
+    parser.add_argument('--sample', action='store_true', help='Generate a sample workspace for exploration.')
     args = parser.parse_args()
 
     config_path = args.config_path
+    if args.sample:
+        # generate sample workspace
+        wksp = config_path.parent
+        wksp.mkdir(parents=True, exist_ok=True)
+        # copy example corpus
+        from shutil import copy2
+        from pathlib import Path as _Path
+        sample_dir = _Path(__file__).resolve().parents[2] / 'example' / 'wksp'
+        for name in ['corpus.pattern.jsonl', 'patterns.txt']:
+            src = sample_dir / name
+            if src.exists():
+                copy2(src, wksp / name)
+        # create config if missing
+        if not config_path.exists():
+            Config(config_path).save()
+        logger.info(f'Sample workspace generated at {wksp}')
+        return
     if config_path.exists():
         app = ReviewApp(config_path)
         app.run()
         # on exit, export database
-        app.annotations.export()
+        try:
+            app.annotations.export()
+            app.notify('Exported annotations', severity='information')
+        except Exception as exc:
+            logger.error(f'Export failed: {exc}')
     else:
         logger.error(f'Configuration file does not exist! {config_path}')
         logger.warning(f'Creating default configuration at {config_path}')

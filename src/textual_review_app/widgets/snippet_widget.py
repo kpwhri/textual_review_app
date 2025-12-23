@@ -32,6 +32,7 @@ class SnippetWidget(Widget):
             line if isinstance(line, Label) else Label(str(line)) for line in self.config.instructions
         ]
         self.marks = []
+        self._temp_patterns = []
 
     def compose(self):
         with Horizontal():
@@ -56,12 +57,13 @@ class SnippetWidget(Widget):
         if marks is not None:
             self.marks = marks
         await self.scroll.query_one('#textfield').remove()
+        patterns = list(self.config.highlights) + list(self._temp_patterns)
         await self.scroll.mount(
             HighlighterWidget(
                 self.entry[self.PRETEXT if self.show_full_text_pre else self.PRE],
                 self.entry[self.MATCH],
                 self.entry[self.POSTTEXT if self.show_full_text_post else self.POST],
-                self.config.highlights,
+                patterns,
                 self.marks,
                 self.config.mark_colors,
                 id='textfield',
@@ -76,6 +78,10 @@ class SnippetWidget(Widget):
 
     def get_selected_text(self):
         return self.scroll.query_one('#textfield').selection
+
+    def set_temp_highlights(self, patterns: list[dict]):
+        """Set temporary highlight patterns (e.g., from search) until next change."""
+        self._temp_patterns = patterns or []
 
     @on(Button.Pressed, '#pretext-button')
     async def reveal_pretext(self):

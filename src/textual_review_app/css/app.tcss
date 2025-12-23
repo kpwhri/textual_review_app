@@ -7,10 +7,11 @@ TextArea {
     color: white;
 }
 
-#top {
-    height: 3;
+#topbar {
+    height: 4;
     dock: top;
     background: $accent;
+    border-bottom: solid $primary;
 }
 
 #bottom {
@@ -20,7 +21,18 @@ TextArea {
 }
 
 #buttonbar {
-    height: 3;
+    height: 1;
+    content-align: center middle;
+    text-style: bold;
+}
+#buttonbar Button{
+    margin: 0 1;
+}
+
+#infobar {
+    height: 1fr;
+    content-align: center middle;
+    text-style: bold;
 }
 
 #scroll {
@@ -151,4 +163,22 @@ Label.left {
     content-align: center middle;
     border: none;
     padding: 0;
+}
+#goto-reviewed-btn {
+    width: 15;
+    height: 1;
+    content-align: center middle;
+    border: none;
+    padding: 0;
+}
+#settings-btn {
+    width: 15;
+    height: 1;
+    content-align: center middle;
+    border: none;
+    padding: 0;
+}
+
+#record_number {
+    width: 1fr;
 }

@@ -15,12 +15,14 @@ class Annotation:
         self.selected = data.get('selected', list())
         self.comment = data.get('comment', '')
         self.marks = data.get('marks', list())
+        self.flagged = bool(data.get('flagged', False))
 
     def to_json(self):
         return {
             'selected': self.selected,
             'comment': self.comment,
             'marks': self.marks,
+            'flagged': self.flagged,
         }
 
     def to_json_str(self):
@@ -37,14 +39,21 @@ class Annotation:
 
 class AnnotationStore:
 
-    def __init__(self, dbpath: Path):
+    def __init__(self, dbpath: Path, user: str | None = None):
         self.dbpath = dbpath
         self.conn = sqlite3.connect(
             self.dbpath,
             detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
         )
         self.conn.row_factory = sqlite3.Row
+        # WAL and schema versioning
+        try:
+            self.conn.execute('PRAGMA journal_mode=WAL;')
+        except Exception:
+            pass
+        self.conn.execute('PRAGMA user_version=1;')
         self._create_table()
+        self.user = user or 'anonymous'
 
     def _create_table(self):
         self.conn.execute('''
@@ -55,6 +64,8 @@ class AnnotationStore:
                               last_update_utc TIMESTAMP NOT NULL
                           )
                           ''')
+        # index on rowid (redundant with PK but explicit per requirements)
+        self.conn.execute('CREATE INDEX IF NOT EXISTS idx_annotations_rowid ON annotations(rowid);')
         self.conn.commit()
 
     def save(self, rowid, annotation: Annotation):
@@ -85,10 +96,11 @@ class AnnotationStore:
         cur = self.conn.execute('SELECT 1 FROM annotations WHERE rowid = ? LIMIT 1', (rowid,))
         return cur.fetchone() is not None
 
-    def reviewed_ids(self):
+    def recent_reviewed_ids(self, n=None):
         """Yield rowids that have been reviewed (persisted in the DB)."""
-        cur = self.conn.execute('SELECT rowid FROM annotations ORDER BY rowid')
-        return [row['rowid'] for row in cur.fetchall()]
+        limit = f'LIMIT {n}' if n else ''
+        cur = self.conn.execute(f'SELECT rowid FROM annotations ORDER BY last_update_utc DESC {limit}')
+        return sorted(row['rowid'] for row in cur)
 
     def export(self):
         with open(self.dbpath.parent / f'export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.db.jsonl',
@@ -96,6 +108,7 @@ class AnnotationStore:
             for rowid, annotation in self.conn.execute('SELECT rowid, annotation FROM annotations'):
                 d = json.loads(annotation)
                 d['row'] = rowid
+                d['user'] = self.user
                 out.write(json.dumps(d) + '\n')
 
 
