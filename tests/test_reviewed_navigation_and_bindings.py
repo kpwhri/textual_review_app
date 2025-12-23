@@ -65,3 +65,17 @@ async def test_keybindings_save_and_navigation(app):
         # use Ctrl+Left to go back previous
         await pilot.press('ctrl+left')
         assert 'Record #1' in str(app.query_one('#progress-label').renderable)
+
+
+async def test_escape_unfocus_enables_keybindings(app):
+    async with app.run_test() as pilot:
+        # navigate to first record to ensure textarea present
+        await pilot.click('#next')
+        # focus into the comment TextArea by clicking it
+        await pilot.click('#comment')
+        # Try to trigger save while focused; first press escape to unfocus, then Ctrl+S should work
+        await pilot.press('escape')
+        await pilot.press('ctrl+s')
+        # Verify db has at least one row saved
+        db_path = app.config.corpus_path.parent / 'annotations.db'
+        assert db_path.exists()

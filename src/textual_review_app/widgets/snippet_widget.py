@@ -105,7 +105,13 @@ class SnippetWidget(Widget):
 
     @on(Key)
     async def handle_annotation(self, event: Key) -> None:
-        if event.key == 'enter':  # enter
+        if event.key == 'escape':
+            # unfocus to allow app-level keybindings to work
+            try:
+                self.app.set_focus(None)
+            except Exception:
+                pass
+        elif event.key == 'enter':  # enter
             widget = self.scroll.query_one('#textfield')
             await self.app.push_screen(
                 MarkModal(widget.selection_start, widget.selection_end, widget.selection),
