@@ -20,6 +20,11 @@ from textual_review_app.widgets.toggle_button import ToggleButton
 
 class ReviewApp(App):
     CSS_PATH = 'css/app.tcss'
+    BINDINGS = [
+        ('ctrl+s', 'save', 'Save'),
+        ('ctrl+right', 'save_next', 'Save & Next'),
+        ('ctrl+left', 'previous', 'Previous'),
+    ]
 
     curr_idx = reactive(0)
     current_entry = reactive(dict)
@@ -62,6 +67,7 @@ class ReviewApp(App):
                 classes='horizontal-layout',
             ),
             Button('Instructions', id='instructions-btn', classes='yellow-btn'),
+            Button('Go To Reviewed', id='goto-reviewed-btn', classes='blue-btn'),
             id='topbar',
             classes='horizontal-layout',
         )
@@ -191,6 +197,40 @@ class ReviewApp(App):
     @on(Button.Pressed, '#instructions-btn')
     async def show_instructions(self):
         await self.push_screen(InfoModal(self.config.instructions, title='Instructions'))
+
+    @on(Button.Pressed, '#goto-reviewed-btn')
+    async def open_reviewed_nav(self):
+        from textual_review_app.widgets.reviewed_nav_modal import GoToModal
+        reviewed = self.annotations.reviewed_ids()
+        await self.push_screen(GoToModal(reviewed, total=len(self.corpus)))
+
+    @on(Button.Pressed, '.goto-reviewed')
+    async def handle_goto_reviewed(self, event: Button.Pressed):
+        btn_id = event.button.id or ''
+        if not btn_id.startswith('goto-'):
+            return
+        try:
+            idx = int(btn_id.split('-', 1)[1])
+        except ValueError:
+            return
+        if self.annotations.exists(idx):
+            self.show_instructions = False
+            self.curr_idx = idx
+            await self.update_display()
+        else:
+            await self.push_screen(InfoModal([
+                f'Record #{idx + 1} has not been reviewed yet.',
+                'You can only jump to records that were already saved.'
+            ], title='Unreviewed Record'))
+
+    async def action_save(self):
+        await self.save_record()
+
+    async def action_save_next(self):
+        await self.get_next_record()
+
+    async def action_previous(self):
+        await self.previous_record()
 
 
 def main():

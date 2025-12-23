@@ -77,6 +77,19 @@ class AnnotationStore:
             return Annotation(rowid, row['annotation'])
         return Annotation(rowid)
 
+    def exists(self, rowid: int) -> bool:
+        """Return True if an annotation record exists for the given rowid.
+
+        This does not infer from default objects; it checks the database presence.
+        """
+        cur = self.conn.execute('SELECT 1 FROM annotations WHERE rowid = ? LIMIT 1', (rowid,))
+        return cur.fetchone() is not None
+
+    def reviewed_ids(self):
+        """Yield rowids that have been reviewed (persisted in the DB)."""
+        cur = self.conn.execute('SELECT rowid FROM annotations ORDER BY rowid')
+        return [row['rowid'] for row in cur.fetchall()]
+
     def export(self):
         with open(self.dbpath.parent / f'export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.db.jsonl',
                   'w', encoding='utf8') as out:

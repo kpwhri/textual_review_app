@@ -10,6 +10,7 @@ from textual.widgets import Label, Button
 
 
 class InfoModal(ModalScreen):
+    BINDINGS = [('escape', 'dismiss', 'Close')]
 
     def __init__(self, lines, title='Info'):
         super().__init__()
@@ -29,3 +30,6 @@ class InfoModal(ModalScreen):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == 'ok':
             self.dismiss()
+
+    def action_dismiss(self):
+        self.dismiss()

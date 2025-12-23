@@ -5,6 +5,7 @@ from textual.widgets import DataTable, Button
 
 
 class MetadataModal(ModalScreen):
+    BINDINGS = [('escape', 'dismiss', 'Close')]
 
     def __init__(self, data: dict, title='Metadata'):
         super().__init__()
@@ -26,3 +27,6 @@ class MetadataModal(ModalScreen):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == 'ok':
             self.dismiss()
+
+    def action_dismiss(self):
+        self.dismiss()
