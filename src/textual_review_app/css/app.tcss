@@ -94,7 +94,7 @@ Label.left {
 
 .left-dock {
     dock: left;
-    width: 20;
+    width: 60;
 }
 
 .float-top {
@@ -181,6 +181,19 @@ Label.left {
 
 #record_number {
     width: 1fr;
+}
+
+#modal-container {
+    background: $boost;
+    border: thick $primary;
+    width: 60;
+    height: 30;
+    align: center middle;
+}
+
+#response-list {
+    height: 1fr;
+    border: solid $primary;
 }
 
 .left-align-label {

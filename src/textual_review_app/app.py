@@ -28,6 +28,7 @@ class ReviewApp(App):
         ('ctrl+left', 'previous', 'Previous'),
         ('ctrl+f', 'search', 'Search'),
         ('ctrl+r', 'toggle_flag', 'Flag Record'),
+        ('ctrl+l', 'open_canned_responses', 'Canned Responses'),
     ]
 
     curr_idx = reactive(0)
@@ -160,9 +161,12 @@ class ReviewApp(App):
             self.config.offset = self.curr_idx
             self.current_entry = self.corpus[idx]
             self.current_annot = self.annotations.get(idx)
+            if self.is_mounted:
+                await self.update_display()
 
     def save(self):
-        self.current_annot.comment = self.snippet_widget.get_comment()
+        comment = self.snippet_widget.get_comment()
+        self.current_annot.comment = comment
         self.current_annot.selected = [
             str(btn.label) for btn in self.response_buttons if 'responsebtn-checked' in btn.classes
         ]
@@ -176,6 +180,8 @@ class ReviewApp(App):
         if self.curr_idx < 0:
             self.curr_idx = 0
         await self.snippet_widget.update_entry(self.current_entry, self.current_annot.comment, self.current_annot.marks)
+        # Update comment area explicitly to ensure it matches current annotation
+        self.snippet_widget.comment_area.text = self.current_annot.comment
         # update selection
         for response in self.response_buttons:
             response.set_selected(response.label in self.current_annot.selected)
@@ -185,8 +191,10 @@ class ReviewApp(App):
             if k not in {'match', 'precontext', 'postcontext', 'pretext', 'posttext'}
         ]
         self.current_meta1.update(display_metadata[0])
-        self.current_meta2.update(display_metadata[1])
-        self.current_meta3.update(display_metadata[2])
+        if len(display_metadata) > 1:
+            self.current_meta2.update(display_metadata[1])
+        if len(display_metadata) > 2:
+            self.current_meta3.update(display_metadata[2])
         percent_done = self.curr_idx / len(self.corpus) * 100
         self.progress_label.update(f'Record #{self.curr_idx + 1} / {len(self.corpus)} ({percent_done:.2f}%)')
         # sync review flag button state
@@ -203,14 +211,6 @@ class ReviewApp(App):
     async def get_next_record(self):
         self.save()
         self.curr_idx += 1
-        if self.curr_idx >= len(self.corpus):
-            self.curr_idx = len(self.corpus) - 1
-            await self.push_screen(InfoModal([
-                f'Congratulations! You have finished all {len(self.corpus)} records.'
-                'You have finished the last record.',
-                'Review has been completed, though you can go back.',
-            ], title='Finished Review'))
-        await self.update_display()
 
     @on(Button.Pressed, '#save')
     async def save_record(self):
@@ -225,17 +225,37 @@ class ReviewApp(App):
     async def previous_record(self):
         self.save()
         self.curr_idx -= 1
-        if self.curr_idx < 0:
-            self.curr_idx = 0
-            await self.push_screen(InfoModal([
-                'You have reached the first record.',
-                'Unable to go back any further.',
-            ], title='No Previous Records'))
-        await self.update_display()
 
     @on(Button.Pressed, '#metadata-btn')
     async def show_metadata(self):
         await self.push_screen(MetadataModal(self.current_entry))
+
+    @on(Button.Pressed, '#canned-btn')
+    def action_open_canned_responses(self):
+        from textual_review_app.widgets.canned_response_modal import CannedResponseModal
+        self.push_screen(CannedResponseModal(self.config.canned_responses), self.handle_canned_response)
+
+    def handle_canned_response(self, response: str | None):
+        if response is None:
+            return
+
+        if response.startswith('ADD:'):
+            new_response = response[4:]
+            if new_response not in self.config.canned_responses:
+                self.config.canned_responses.append(new_response)
+                self.config.save()
+            response = new_response
+
+        current_comment = self.snippet_widget.get_comment()
+        if current_comment:
+            if not current_comment.endswith('\n'):
+                current_comment += '\n'
+            new_comment = current_comment + response
+        else:
+            new_comment = response
+
+        self.snippet_widget.comment_area.text = new_comment
+        self.snippet_widget.comment_area.focus()
 
     @on(Button.Pressed, '#instructions-btn')
     async def show_instructions(self):
@@ -259,6 +279,7 @@ class ReviewApp(App):
                 ' • [yellow]Ctrl+←[/yellow]: Go to previous',
                 ' • [yellow]Ctrl+F[/yellow]: Search',
                 ' • [yellow]Ctrl+R[/yellow]: Toggle flag',
+                ' • [yellow]Ctrl+l[/yellow]: When in comments, open canned responses.',
                 '',
                 '[b]Here are your project-specific instructions:[/b]',
             ] + self.config.instructions +[
@@ -272,7 +293,7 @@ class ReviewApp(App):
         async def _apply_settings(values: dict):
             if not values:
                 return  # 'cancel'
-            # values keys: 'font_scale', 'user'
+            # values keys: 'font_scale', 'user', 'canned_responses'
             try:
                 self.config.font_scale = float(values.get('font_scale', self.config.font_scale))
                 self.styles.scale = self.config.font_scale
@@ -283,7 +304,13 @@ class ReviewApp(App):
                 self.config.user = user
                 self.annotations.user = user
 
-        await self.push_screen(SettingsModal(self.config.font_scale, self.config.user), _apply_settings)
+            if 'canned_responses' in values:
+                self.config.canned_responses = values['canned_responses']
+
+        await self.push_screen(
+            SettingsModal(self.config.font_scale, self.config.user, self.config.canned_responses),
+            _apply_settings
+        )
 
     @on(Button.Pressed, '#goto-reviewed-btn')
     async def open_goto(self):

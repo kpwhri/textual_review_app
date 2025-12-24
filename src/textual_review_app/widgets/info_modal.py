@@ -10,7 +10,10 @@ from textual.widgets import Label, Button
 
 
 class InfoModal(ModalScreen):
-    BINDINGS = [('escape', 'dismiss', 'Close')]
+    BINDINGS = [
+        ('escape', 'dismiss', 'Close'),
+        ('enter', 'dismiss', 'Close'),
+    ]
 
     def __init__(self, lines, title='Info'):
         super().__init__()

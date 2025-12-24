@@ -29,6 +29,7 @@ class Config:
             'user': None,
             'font_scale': 1.0,
             'snippets': [],
+            'canned_responses': [],
             'mark_colors': {
                 'mark': 'blue',
                 'negated': 'orange',
@@ -40,13 +41,13 @@ class Config:
 
     def load(self):
         if self.path.exists():
-            with open(self.path) as fh:
+            with open(self.path, encoding='utf8') as fh:
                 self.data |= tomlkit.load(fh)
         else:
             raise ValueError(f'Configuration file does not exist: {self.path}')
 
     def save(self):
-        with open(self.path, 'w') as out:
+        with open(self.path, 'w', encoding='utf8') as out:
             tomlkit.dump(self.data, out)
 
     def add_highlight(self, value, color):
@@ -55,6 +56,21 @@ class Config:
 
     def add_snippet(self, text: str):
         self.data['snippets'].append(text)
+        self.save()
+
+    def add_canned_response(self, text: str):
+        if 'canned_responses' not in self.data:
+            self.data['canned_responses'] = []
+        self.data['canned_responses'].append(text)
+        self.save()
+
+    @property
+    def canned_responses(self):
+        return self.data.get('canned_responses', [])
+
+    @canned_responses.setter
+    def canned_responses(self, value: list[str]):
+        self.data['canned_responses'] = value
         self.save()
 
     @property

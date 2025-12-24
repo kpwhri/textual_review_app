@@ -8,6 +8,7 @@ from textual.widgets import Button, Static, TextArea, Label
 from textual_review_app.config import Config
 from textual_review_app.widgets.highlighter_widget import HighlighterWidget
 from textual_review_app.widgets.mark_modal import MarkModal
+from textual_review_app.widgets.canned_response_modal import CannedResponseModal
 
 
 class SnippetWidget(Widget):
@@ -38,6 +39,7 @@ class SnippetWidget(Widget):
                              id='pretext-button', classes='textbtn float-top purple-btn')
                 yield Label('Comments', id='comment-label')
                 yield self.comment_area
+                yield Button('Canned Responses', id='canned-btn', classes='textbtn purple-btn')
                 yield Button('Hide After' if self.show_full_text_post else 'Show After',
                              id='posttext-button', classes='textbtn float-bottom purple-btn')
             self.scroll = VerticalScroll(
@@ -80,6 +82,34 @@ class SnippetWidget(Widget):
         """Set temporary highlight patterns (e.g., from search) until next change."""
         self._temp_patterns = patterns or []
 
+    @on(Button.Pressed, '#canned-btn')
+    async def open_canned_responses(self):
+        from textual_review_app.widgets.canned_response_modal import CannedResponseModal
+        await self.app.push_screen(
+            CannedResponseModal(self.config.canned_responses),
+            self._handle_canned_response
+        )
+
+    def _handle_canned_response(self, response: str | None) -> None:
+        self.app.log(f'Handling canned response: {response}')
+        if response:
+            if response.startswith('ADD:'):
+                new_response = response[4:]
+                self.config.add_canned_response(new_response)
+                response = new_response
+
+            current_text = self.comment_area.text
+            if current_text:
+                if not current_text.endswith('\n'):
+                    self.comment_area.text += '\n'
+                self.comment_area.text += response
+            else:
+                self.comment_area.text = response
+            self.comment_area.focus()
+
+            # return focus to the text area
+            self.comment_area.focus()
+
     @on(Button.Pressed, '#pretext-button')
     async def reveal_pretext(self):
         if self.show_full_text_pre:
@@ -120,6 +150,13 @@ class SnippetWidget(Widget):
             return
         if event.key == 'ctrl+r':
             await self.app.action_toggle_flag()
+            event.stop()
+            return
+        if event.key == 'ctrl+l':
+            await self.app.push_screen(
+                CannedResponseModal(self.config.canned_responses),
+                self._handle_canned_response
+            )
             event.stop()
             return
 
