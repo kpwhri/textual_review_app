@@ -182,3 +182,10 @@ Label.left {
 #record_number {
     width: 1fr;
 }
+
+.left-align-label {
+    text-align: left;
+    content-align: left middle;
+    width: 100%;
+    padding-left: 3;
+}

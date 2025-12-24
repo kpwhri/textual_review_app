@@ -15,14 +15,14 @@ class InfoModal(ModalScreen):
     def __init__(self, lines, title='Info'):
         super().__init__()
         if isinstance(lines, list):
-            self.message = [line if isinstance(line, Label) else Label(str(line)) for line in lines]
+            self.message = [line if isinstance(line, Label) else Label(str(line), classes='left-align-label') for line in lines]
         else:
-            self.message = [lines if isinstance(lines, Label) else Label(lines)]
+            self.message = [lines if isinstance(lines, Label) else Label(lines, classes='left-align-label')]
         self.title = title
 
     def compose(self) -> ComposeResult:
         yield Label(Text(self.title, style=Style(bold=True, underline=True)))
-        with Vertical():
+        with Vertical(classes='left-align-label'):
             for msg in self.message:
                 yield msg
         yield Button('Ok', id='ok', variant='primary')

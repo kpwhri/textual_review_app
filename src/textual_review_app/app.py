@@ -63,23 +63,23 @@ class ReviewApp(App):
         self.progress_label = Label('', id='progress-label')
         self.last_saved_label = Label('', id='last-saved-label')
         yield Vertical(
-                Container(
-                    Button('Metadata', id='metadata-btn', classes='orange-btn'),
-                    Button('Instructions', id='instructions-btn', classes='yellow-btn'),
-                    Button('Settings', id='settings-btn', classes='yellow-btn'),
-                    Button('Go To Reviewed', id='goto-reviewed-btn', classes='blue-btn'),
-                    id='buttonbar',
-                    classes='horizontal-layout',
-                ),
-                Container(
-                    self.current_meta1,
-                    self.current_meta2,
-                    self.current_meta3,
-                    self.progress_label,
-                    self.last_saved_label,
-                    id='infobar',
-                    classes='horizontal-layout',
-                ),
+            Container(
+                Button('Metadata', id='metadata-btn', classes='orange-btn'),
+                Button('Instructions', id='instructions-btn', classes='yellow-btn'),
+                Button('Settings', id='settings-btn', classes='yellow-btn'),
+                Button('Go To Reviewed', id='goto-reviewed-btn', classes='blue-btn'),
+                id='buttonbar',
+                classes='horizontal-layout',
+            ),
+            Container(
+                self.current_meta1,
+                self.current_meta2,
+                self.current_meta3,
+                self.progress_label,
+                self.last_saved_label,
+                id='infobar',
+                classes='horizontal-layout',
+            ),
             id='topbar',
         )
 
@@ -239,28 +239,33 @@ class ReviewApp(App):
 
     @on(Button.Pressed, '#instructions-btn')
     async def show_instructions(self):
-        await self.push_screen(InfoModal([
-                                             '[b]Welcome to the Textual Review App![/b]',
-                                             '',
-                                             '[b]Instructions:[b]',
-                                             'Review the [red][highlight][underline]red highlighted and underlined text[/red][/highlight][/underline] and choose the best response option.'
-                                             '',
-                                             'Use the buttons at the bottom to annotate the corpus:',
-                                             ' • [b]Save & Next[/b]: Save current work and move to the next record.',
-                                             ' • [b]Save[/b]: Save your progress without moving.',
-                                             ' • [b]Previous[/b]: Go back to the preceding record.',
-                                             ' • [b]Flag[/b]: Mark records for further review.',
-                                             ' • [b]Add Highlight[/b]: Add custom highlights to the text.',
-                                             '',
-                                             '[b]Keyboard Shortcuts:[/b]',
-                                             ' • [yellow]Ctrl+S[/yellow]: Save current record',
-                                             ' • [yellow]Ctrl+→[/yellow]: Save and go to next',
-                                             ' • [yellow]Ctrl+←[/yellow]: Go to previous',
-                                             ' • [yellow]Ctrl+F[/yellow]: Search',
-                                             ' • [yellow]Ctrl+R[/yellow]: Toggle flag',
-                                             '',
-                                             'Here are your project-specific instructions:',
-                                         ] + self.config.instructions, title='Instructions'))
+        await self.push_screen(InfoModal(
+            [
+                '[b]Welcome to the Textual Review App![/b]',
+                '',
+                '[b]Instructions:[b]',
+                'Review the [red][highlight][underline]red highlighted and underlined text[/red][/highlight][/underline] and choose the best response option.'
+                '',
+                'Use the buttons at the bottom to annotate the corpus:',
+                ' • [b]Save & Next[/b]: Save current work and move to the next record.',
+                ' • [b]Save[/b]: Save your progress without moving.',
+                ' • [b]Previous[/b]: Go back to the preceding record.',
+                ' • [b]Flag[/b]: Mark records for further review.',
+                ' • [b]Add Highlight[/b]: Add custom highlights to the text.',
+                '',
+                '[b]Keyboard Shortcuts:[/b]',
+                ' • [yellow]Ctrl+S[/yellow]: Save current record',
+                ' • [yellow]Ctrl+→[/yellow]: Save and go to next',
+                ' • [yellow]Ctrl+←[/yellow]: Go to previous',
+                ' • [yellow]Ctrl+F[/yellow]: Search',
+                ' • [yellow]Ctrl+R[/yellow]: Toggle flag',
+                '',
+                '[b]Here are your project-specific instructions:[/b]',
+            ] + self.config.instructions +[
+                '',
+                'Press [b]OK[/b] to get started.',
+            ],
+            title='Instructions'))
 
     @on(Button.Pressed, '#settings-btn')
     async def open_settings(self):
